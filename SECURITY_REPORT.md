@@ -528,7 +528,7 @@ Either:
        except ImportError:
            raise click.ClickException(
                "The 'enforce' command is not yet implemented in this release. "
-               "See https://github.com/rudy101/KlusterShield/issues for status."
+               "See https://github.com/rudymartinezai/klustershield/issues for status."
            )
    ```
 3. **Mark the commands as hidden** in the CLI until the modules exist:

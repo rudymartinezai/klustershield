@@ -94,7 +94,7 @@ KlusterShield maps every check to a specific SSDF practice:
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/rudy101/KlusterShield.git
+git clone https://github.com/rudymartinezai/klustershield.git
 cd KlusterShield
 python3 -m venv .venv
 source .venv/bin/activate

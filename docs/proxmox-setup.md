@@ -108,7 +108,7 @@ iface vmbr1 inet static
 
 ```bash
 # Clone KlusterShield
-git clone https://github.com/rudy101/KlusterShield.git
+git clone https://github.com/rudymartinezai/klustershield.git
 cd KlusterShield
 
 # Install dependencies

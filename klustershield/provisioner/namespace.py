@@ -150,7 +150,7 @@ class NamespaceProvisioner:
                 annotations={
                     "klustershield/compliance-profile": self.profile,
                     "klustershield/team": team,
-                    "klustershield/doc": "https://github.com/rudy101/KlusterShield",
+                    "klustershield/doc": "https://github.com/rudymartinezai/klustershield",
                 },
             )
         )

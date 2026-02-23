@@ -18,7 +18,7 @@ metadata:
     klustershield/description: zero-trust-baseline
   annotations:
     klustershield/nist: "DS.1.1 - Protect data at rest and in transit"
-    klustershield/doc: "https://github.com/rudy101/KlusterShield/blob/main/docs/network-policies.md"
+    klustershield/doc: "https://github.com/rudymartinezai/klustershield/blob/main/docs/network-policies.md"
 spec:
   podSelector: {}       # Selects ALL pods in namespace
   policyTypes:
