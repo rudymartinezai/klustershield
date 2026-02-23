@@ -1,0 +1,50 @@
+# KlusterShield — Default Deny Network Policy
+# NIST SP 800-218 Control: DS.1.1 — Zero-trust network isolation
+#
+# Denies ALL ingress and egress traffic by default.
+# Apply additional policies to explicitly allow required traffic.
+# This is the security baseline for every KlusterShield-managed namespace.
+#
+# Usage:
+#   kubectl apply -f manifests/network-policies/default-deny-all.yaml -n <namespace>
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  labels:
+    app.kubernetes.io/managed-by: klustershield
+    klustershield/nist-control: DS.1.1
+    klustershield/description: zero-trust-baseline
+  annotations:
+    klustershield/nist: "DS.1.1 - Protect data at rest and in transit"
+    klustershield/doc: "https://github.com/rudy101/KlusterShield/blob/main/docs/network-policies.md"
+spec:
+  podSelector: {}       # Selects ALL pods in namespace
+  policyTypes:
+    - Ingress
+    - Egress
+  # No ingress or egress rules = deny everything
+
+---
+# Allow DNS egress so pods can resolve service names
+# Without this, nothing works — DNS is the one exception to deny-all
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  labels:
+    app.kubernetes.io/managed-by: klustershield
+    klustershield/nist-control: DS.1.1
+  annotations:
+    klustershield/nist: "DS.1.1 - Allow DNS for service discovery (required exception)"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

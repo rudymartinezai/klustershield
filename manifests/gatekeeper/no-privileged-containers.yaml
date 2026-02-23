@@ -1,0 +1,69 @@
+# KlusterShield — OPA Gatekeeper Constraint Template
+# NIST SP 800-218 Control: PS.1.1 — Block privileged containers at admission time
+#
+# This ConstraintTemplate + Constraint rejects any pod that attempts
+# to run a privileged container BEFORE it reaches the cluster.
+# Enforcement happens at the API server admission webhook level.
+#
+# Usage:
+#   kubectl apply -f manifests/gatekeeper/no-privileged-containers.yaml
+#
+# Requirements:
+#   OPA Gatekeeper must be installed:
+#   kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.14/deploy/gatekeeper.yaml
+
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: klustershieldnoprivileged
+  labels:
+    app.kubernetes.io/managed-by: klustershield
+    klustershield/nist-control: PS.1.1
+  annotations:
+    description: "Blocks containers with privileged: true — NIST 800-218 PS.1.1"
+spec:
+  crd:
+    spec:
+      names:
+        kind: KlusterShieldNoPrivileged
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package klustershield.noprivileged
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := sprintf(
+            "KlusterShield [PS.1.1]: Container '%v' in pod '%v' is running as privileged. This violates NIST 800-218 PS.1.1. Set securityContext.privileged: false.",
+            [container.name, input.review.object.metadata.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          container.securityContext.privileged == true
+          msg := sprintf(
+            "KlusterShield [PS.1.1]: Init container '%v' in pod '%v' is running as privileged.",
+            [container.name, input.review.object.metadata.name]
+          )
+        }
+
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: KlusterShieldNoPrivileged
+metadata:
+  name: block-privileged-containers
+  labels:
+    app.kubernetes.io/managed-by: klustershield
+    klustershield/nist-control: PS.1.1
+spec:
+  enforcementAction: deny    # deny | dryrun | warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - gatekeeper-system
