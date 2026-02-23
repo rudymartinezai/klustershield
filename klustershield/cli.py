@@ -30,15 +30,13 @@ def _validate_dns_label(ctx: click.Context, param: click.Parameter, value: str |
     if value is None:
         return None
     if not DNS_LABEL_RE.match(value):
-        raise click.BadParameter(
-            "Must be a valid DNS label: lowercase alphanumeric and hyphens, max 63 chars"
-        )
+        raise click.BadParameter("Must be a valid DNS label: lowercase alphanumeric and hyphens, max 63 chars")
     return value
 
 
 @click.group()
 @click.version_option(version="0.1.0", prog_name="KlusterShield")
-def main():
+def main() -> None:
     """
     KlusterShield — Security-hardened Kubernetes compliance automation.
 
@@ -65,7 +63,7 @@ def main():
 )
 @click.option("--team", "-t", default="default", callback=_validate_dns_label, help="Owning team label")
 @click.option("--dry-run", is_flag=True, help="Preview changes without applying")
-def provision(namespace: str, profile: str, team: str, dry_run: bool):
+def provision(namespace: str, profile: str, team: str, dry_run: bool) -> None:
     """
     Provision a hardened namespace with security controls pre-applied.
 
@@ -100,7 +98,7 @@ def provision(namespace: str, profile: str, team: str, dry_run: bool):
     help="Compliance profile to scan against",
 )
 @click.option("--fail-below", default=80, help="Exit code 1 if compliance score below this %")
-def scan(namespace: str | None, output: str, profile: str, fail_below: int):
+def scan(namespace: str | None, output: str, profile: str, fail_below: int) -> None:
     """
     Scan cluster or namespace against NIST 800-218 controls.
 
@@ -125,7 +123,7 @@ def scan(namespace: str | None, output: str, profile: str, fail_below: int):
 @click.option("--install", is_flag=True, help="Install OPA Gatekeeper and apply constraint templates")
 @click.option("--uninstall", is_flag=True, help="Remove Gatekeeper from cluster")
 @click.option("--list", "list_policies", is_flag=True, help="List active constraint templates")
-def enforce(install: bool, uninstall: bool, list_policies: bool):
+def enforce(install: bool, uninstall: bool, list_policies: bool) -> None:
     """
     Manage OPA Gatekeeper policy enforcement.
 
@@ -136,8 +134,7 @@ def enforce(install: bool, uninstall: bool, list_policies: bool):
         from klustershield.enforcer.gatekeeper import GatekeeperManager
     except ImportError as exc:
         raise click.ClickException(
-            "The 'enforce' command is not available in this build yet. "
-            "See project issues for implementation status."
+            "The 'enforce' command is not available in this build yet. " "See project issues for implementation status."
         ) from exc
 
     manager = GatekeeperManager()
@@ -153,7 +150,9 @@ def enforce(install: bool, uninstall: bool, list_policies: bool):
 
 
 @main.command()
-@click.option("--namespace", "-n", default=None, callback=_validate_dns_label, help="Namespace to collect audit logs from")
+@click.option(
+    "--namespace", "-n", default=None, callback=_validate_dns_label, help="Namespace to collect audit logs from"
+)
 @click.option(
     "--backend",
     "-b",
@@ -170,7 +169,7 @@ def audit(
     output: str,
     splunk_url: str | None,
     splunk_token: str | None,
-):
+) -> None:
     """
     Collect and ship Kubernetes audit logs to a backend.
 
@@ -181,8 +180,7 @@ def audit(
         from klustershield.auditor.shipper import AuditShipper
     except ImportError as exc:
         raise click.ClickException(
-            "The 'audit' command is not available in this build yet. "
-            "See project issues for implementation status."
+            "The 'audit' command is not available in this build yet. " "See project issues for implementation status."
         ) from exc
 
     shipper = AuditShipper(

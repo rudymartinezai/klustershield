@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from jinja2 import Environment, StrictUndefined
 from kubernetes import client, config
@@ -106,11 +106,11 @@ class Status(str, Enum):
 
 @dataclass
 class ControlCheck:
-    control_id: str        # e.g. "PO.1.1"
-    control_family: str    # e.g. "PO - Prepare the Organization"
+    control_id: str  # e.g. "PO.1.1"
+    control_family: str  # e.g. "PO - Prepare the Organization"
     title: str
     description: str
-    severity: str          # critical / high / medium / low
+    severity: str  # critical / high / medium / low
     status: Status = Status.SKIP
     finding: str = ""
     remediation: str = ""
@@ -128,11 +128,7 @@ class ScanResult:
         """Weighted compliance score 0-100."""
         weights = {"critical": 4, "high": 3, "medium": 2, "low": 1}
         total_weight = sum(weights[c.severity] for c in self.checks if c.status != Status.SKIP)
-        passed_weight = sum(
-            weights[c.severity]
-            for c in self.checks
-            if c.status == Status.PASS
-        )
+        passed_weight = sum(weights[c.severity] for c in self.checks if c.status == Status.PASS)
         if total_weight == 0:
             return 0.0
         return round((passed_weight / total_weight) * 100, 1)
@@ -172,9 +168,9 @@ class ComplianceScanner:
         self.rbac_v1 = client.RbacAuthorizationV1Api()
 
     @staticmethod
-    def _all_containers(pod: client.V1Pod) -> list[object]:
+    def _all_containers(pod: client.V1Pod) -> list[Any]:
         """Return all container types to avoid compliance blind spots."""
-        containers: list[object] = list(pod.spec.containers or [])
+        containers: list[Any] = list(pod.spec.containers or [])
         containers += list(pod.spec.init_containers or [])
         containers += list(pod.spec.ephemeral_containers or [])
         return containers
@@ -237,9 +233,7 @@ class ComplianceScanner:
                                 "Insufficient Kubernetes RBAC permissions to run this check "
                                 f"(HTTP {exc.status}: {exc.reason})"
                             ),
-                            remediation=(
-                                "Grant read permissions for the required resource and rerun scan"
-                            ),
+                            remediation=("Grant read permissions for the required resource and rerun scan"),
                         )
                     elif exc.status == 404:
                         check_result = ControlCheck(
@@ -328,9 +322,7 @@ class ComplianceScanner:
             raise ValueError("Refusing to write output when current directory is filesystem root")
 
         if not str(candidate).startswith(str(safe_base) + os.sep):
-            raise ValueError(
-                f"Output path must be within current working directory: {safe_base}"
-            )
+            raise ValueError(f"Output path must be within current working directory: {safe_base}")
 
         if candidate.exists():
             console.print(f"[yellow]Warning:[/yellow] overwriting existing file: {candidate}")
@@ -424,11 +416,7 @@ class ComplianceScanner:
             description="Namespaces should enforce the 'restricted' PodSecurity profile",
             severity="critical",
         )
-        namespaces = (
-            [self.core_v1.read_namespace(namespace)]
-            if namespace
-            else self.core_v1.list_namespace().items
-        )
+        namespaces = [self.core_v1.read_namespace(namespace)] if namespace else self.core_v1.list_namespace().items
         missing = [
             ns.metadata.name
             for ns in namespaces
@@ -438,10 +426,7 @@ class ComplianceScanner:
         if missing:
             check.status = Status.FAIL
             check.finding = f"Namespaces missing restricted PSA label: {', '.join(missing)}"
-            check.remediation = (
-                "Run: kubectl label namespace <ns> "
-                "pod-security.kubernetes.io/enforce=restricted"
-            )
+            check.remediation = "Run: kubectl label namespace <ns> " "pod-security.kubernetes.io/enforce=restricted"
         else:
             check.status = Status.PASS
             check.finding = "All namespaces enforce PodSecurity restricted profile"
@@ -543,8 +528,7 @@ class ComplianceScanner:
             f"{p.metadata.namespace}/{p.metadata.name}"
             for p in pods
             for c in self._all_containers(p)
-            if (not c.resources or not c.resources.limits)
-            and not p.metadata.namespace.startswith("kube-")
+            if (not c.resources or not c.resources.limits) and not p.metadata.namespace.startswith("kube-")
         ]
         if missing:
             check.status = Status.FAIL
@@ -601,7 +585,8 @@ class ComplianceScanner:
             f"{p.metadata.namespace}/{p.metadata.name}: {c.image}"
             for p in pods
             for c in self._all_containers(p)
-            if c.image and (c.image.endswith(":latest") or ":" not in c.image)
+            if c.image
+            and (c.image.endswith(":latest") or ":" not in c.image)
             and not p.metadata.namespace.startswith("kube-")
         ]
         if latest_images:
@@ -635,9 +620,7 @@ class ComplianceScanner:
         if violations:
             check.status = Status.FAIL
             check.finding = f"Pods with host namespace access: {', '.join(violations)}"
-            check.remediation = (
-                "Set spec.hostPID: false, spec.hostNetwork: false, and spec.hostIPC: false"
-            )
+            check.remediation = "Set spec.hostPID: false, spec.hostNetwork: false, and spec.hostIPC: false"
         else:
             check.status = Status.PASS
             check.finding = "No pods sharing host PID, network, or IPC namespaces"
@@ -693,7 +676,7 @@ class ComplianceScanner:
             if p.metadata.namespace.startswith("kube-"):
                 continue
             for c in self._all_containers(p):
-                for env in (c.env or []):
+                for env in c.env or []:
                     if env.value_from and env.value_from.secret_key_ref:
                         violations.append(f"{p.metadata.namespace}/{p.metadata.name}")
                         break
@@ -746,8 +729,7 @@ class ComplianceScanner:
         auto_mounting = [
             f"{p.metadata.namespace}/{p.metadata.name}"
             for p in pods
-            if p.spec.automount_service_account_token is not False
-            and not p.metadata.namespace.startswith("kube-")
+            if p.spec.automount_service_account_token is not False and not p.metadata.namespace.startswith("kube-")
         ]
         if auto_mounting:
             check.status = Status.WARN

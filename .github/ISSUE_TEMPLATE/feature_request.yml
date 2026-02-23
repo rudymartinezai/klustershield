@@ -1,0 +1,32 @@
+name: Feature Request
+description: Suggest a new feature or compliance control
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or gap this addresses.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Related compliance framework (if any)
+      options:
+        - NIST SP 800-218 (SSDF)
+        - CMMC Level 1
+        - CMMC Level 2
+        - FedRAMP Moderate
+        - ITAR
+        - Other / Not applicable
+    validations:
+      required: false

@@ -23,7 +23,8 @@ import os
 import re
 import shlex
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -47,7 +48,7 @@ K3S_INSTALLER_PATH = "/tmp/k3s-install.sh"
 class NodeConfig:
     vm_id: int
     name: str
-    role: str          # control-plane | worker
+    role: str  # control-plane | worker
     ip: str
     cores: int = 4
     memory: int = 8192  # MB
@@ -98,25 +99,29 @@ def build_node_configs(config: ClusterConfig) -> list[NodeConfig]:
     start_octet = int(base_ip_parts[1])
 
     # Control plane
-    nodes.append(NodeConfig(
-        vm_id=200,
-        name=f"{config.cluster_name}-control-plane",
-        role="control-plane",
-        ip=f"{base}.{start_octet}",
-        cores=4,
-        memory=8192,
-    ))
+    nodes.append(
+        NodeConfig(
+            vm_id=200,
+            name=f"{config.cluster_name}-control-plane",
+            role="control-plane",
+            ip=f"{base}.{start_octet}",
+            cores=4,
+            memory=8192,
+        )
+    )
 
     # Workers
     for i in range(1, config.node_count):
-        nodes.append(NodeConfig(
-            vm_id=200 + i,
-            name=f"{config.cluster_name}-worker-{i}",
-            role="worker",
-            ip=f"{base}.{start_octet + i}",
-            cores=4,
-            memory=8192,
-        ))
+        nodes.append(
+            NodeConfig(
+                vm_id=200 + i,
+                name=f"{config.cluster_name}-worker-{i}",
+                role="worker",
+                ip=f"{base}.{start_octet + i}",
+                cores=4,
+                memory=8192,
+            )
+        )
 
     return nodes
 
@@ -129,8 +134,7 @@ def run_remote(ip: str, ssh_user: str, ssh_key: str, known_hosts: str, command: 
 
     if not known_hosts_path.exists():
         raise FileNotFoundError(
-            f"Known hosts file not found: {known_hosts_path}. "
-            "Refusing to connect without host key validation."
+            f"Known hosts file not found: {known_hosts_path}. " "Refusing to connect without host key validation."
         )
 
     client = paramiko.SSHClient()
@@ -345,24 +349,23 @@ def main(
 
     node_configs = build_node_configs(config)
 
-    console.print(Panel(
-        f"[bold blue]KlusterShield Cluster Provisioner[/bold blue]\n\n"
-        f"Proxmox Host: {proxmox_host}\n"
-        f"Cluster Name: {cluster_name}\n"
-        f"Nodes: {nodes} (1 control-plane + {nodes-1} worker(s))\n"
-        f"k3s Version: {k3s_version}\n"
-        f"IP Range: {ip_base} — {ip_base.rsplit('.', 1)[0]}.{int(ip_base.rsplit('.', 1)[1]) + nodes - 1}\n"
-        f"Kubeconfig Output: {kubeconfig_out}",
-        title="Cluster Plan",
-    ))
+    console.print(
+        Panel(
+            f"[bold blue]KlusterShield Cluster Provisioner[/bold blue]\n\n"
+            f"Proxmox Host: {proxmox_host}\n"
+            f"Cluster Name: {cluster_name}\n"
+            f"Nodes: {nodes} (1 control-plane + {nodes-1} worker(s))\n"
+            f"k3s Version: {k3s_version}\n"
+            f"IP Range: {ip_base} — {ip_base.rsplit('.', 1)[0]}.{int(ip_base.rsplit('.', 1)[1]) + nodes - 1}\n"
+            f"Kubeconfig Output: {kubeconfig_out}",
+            title="Cluster Plan",
+        )
+    )
 
     if dry_run:
         console.print("\n[yellow]DRY RUN — no changes will be made[/yellow]\n")
         for node in node_configs:
-            console.print(
-                f"  Would create: [cyan]{node.name}[/cyan] "
-                f"({node.role}) at [cyan]{node.ip}[/cyan]"
-            )
+            console.print(f"  Would create: [cyan]{node.name}[/cyan] " f"({node.role}) at [cyan]{node.ip}[/cyan]")
         return
 
     with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as progress:
@@ -371,9 +374,7 @@ def main(
         task = progress.add_task("Creating VMs on Proxmox...", total=None)
         console.print("\n[bold]Step 1: VM Creation[/bold]")
         for node in node_configs:
-            console.print(
-                f"  Creating VM {node.vm_id}: [cyan]{node.name}[/cyan] at {node.ip}"
-            )
+            console.print(f"  Creating VM {node.vm_id}: [cyan]{node.name}[/cyan] at {node.ip}")
             # NOTE: Proxmox API calls go here using proxmoxer
             # from proxmoxer import ProxmoxAPI
             # prox = ProxmoxAPI(proxmox_host, user=proxmox_user, password=proxmox_password)
@@ -387,9 +388,7 @@ def main(
         control_plane = node_configs[0]
 
         console.print(f"  Control plane: [cyan]{control_plane.ip}[/cyan]")
-        console.print(
-            "  [dim](In production: calls install_k3s_control_plane())[/dim]"
-        )
+        console.print("  [dim](In production: calls install_k3s_control_plane())[/dim]")
         token = "PLACEHOLDER_TOKEN"  # Would be: install_k3s_control_plane(...)
         _ = token
         progress.remove_task(task)
@@ -405,9 +404,7 @@ def main(
         # Step 4: Fetch kubeconfig
         task = progress.add_task("Retrieving kubeconfig...", total=None)
         console.print(f"\n[bold]Step 4: Kubeconfig → {kubeconfig_out}[/bold]")
-        console.print(
-            "  [dim](In production: fetches kubeconfig and writes with write_kubeconfig_secure())[/dim]"
-        )
+        console.print("  [dim](In production: fetches kubeconfig and writes with write_kubeconfig_secure())[/dim]")
         _ = Path(known_hosts).expanduser()
         progress.remove_task(task)
 
