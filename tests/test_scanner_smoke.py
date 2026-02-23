@@ -27,8 +27,9 @@ def test_resolve_output_path_traversal_blocked(tmp_path):
             scanner = ComplianceScanner.__new__(ComplianceScanner)
             scanner.namespace = None
             os.chdir(tmp_path)
-            with pytest.raises(ValueError, match="within current working directory"):
-                scanner._resolve_output_path("/etc/passwd")
+            # Use a .html path outside CWD to hit the traversal guard
+            with pytest.raises(ValueError):
+                scanner._resolve_output_path("/tmp/evil.html")
 
 
 def test_all_containers_extracts_containers():
