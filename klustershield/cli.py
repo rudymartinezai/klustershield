@@ -30,9 +30,7 @@ def _validate_dns_label(ctx: click.Context, param: click.Parameter, value: str |
     if value is None:
         return None
     if not DNS_LABEL_RE.match(value):
-        raise click.BadParameter(
-            "Must be a valid DNS label: lowercase alphanumeric and hyphens, max 63 chars"
-        )
+        raise click.BadParameter("Must be a valid DNS label: lowercase alphanumeric and hyphens, max 63 chars")
     return value
 
 
@@ -136,8 +134,7 @@ def enforce(install: bool, uninstall: bool, list_policies: bool) -> None:
         from klustershield.enforcer.gatekeeper import GatekeeperManager
     except ImportError as exc:
         raise click.ClickException(
-            "The 'enforce' command is not available in this build yet. "
-            "See project issues for implementation status."
+            "The 'enforce' command is not available in this build yet. " "See project issues for implementation status."
         ) from exc
 
     manager = GatekeeperManager()
@@ -153,7 +150,9 @@ def enforce(install: bool, uninstall: bool, list_policies: bool) -> None:
 
 
 @main.command()
-@click.option("--namespace", "-n", default=None, callback=_validate_dns_label, help="Namespace to collect audit logs from")
+@click.option(
+    "--namespace", "-n", default=None, callback=_validate_dns_label, help="Namespace to collect audit logs from"
+)
 @click.option(
     "--backend",
     "-b",
@@ -181,8 +180,7 @@ def audit(
         from klustershield.auditor.shipper import AuditShipper
     except ImportError as exc:
         raise click.ClickException(
-            "The 'audit' command is not available in this build yet. "
-            "See project issues for implementation status."
+            "The 'audit' command is not available in this build yet. " "See project issues for implementation status."
         ) from exc
 
     shipper = AuditShipper(

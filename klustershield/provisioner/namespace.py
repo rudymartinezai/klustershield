@@ -111,9 +111,7 @@ class NamespaceProvisioner:
         console.print(table)
 
         if result.success:
-            console.print(
-                f"\n✅ [bold green]Namespace '{namespace}' provisioned successfully[/bold green]"
-            )
+            console.print(f"\n✅ [bold green]Namespace '{namespace}' provisioned successfully[/bold green]")
             console.print(f"   Profile: {self.profile}")
             console.print(f"   NIST controls applied: {', '.join(NIST_CONTROLS)}")
         else:
@@ -130,9 +128,7 @@ class NamespaceProvisioner:
             "klustershield/profile": self.profile,
             "klustershield/team": team,
             "klustershield/nist-controls": "PO.1.1-PO.3.2-DS.1.1-DS.2.1-PV.1.1",
-            "klustershield/provisioned-at": datetime.datetime.now(datetime.timezone.utc).strftime(
-                "%Y%m%d"
-            ),
+            "klustershield/provisioned-at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d"),
         }
 
     def _create_namespace(self, namespace: str, team: str) -> None:
