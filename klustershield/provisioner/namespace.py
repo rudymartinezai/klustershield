@@ -117,7 +117,7 @@ class NamespaceProvisioner:
             console.print(f"   Profile: {self.profile}")
             console.print(f"   NIST controls applied: {', '.join(NIST_CONTROLS)}")
         else:
-            console.print(f"\n❌ [bold red]Provisioning completed with errors[/bold red]")
+            console.print("\n❌ [bold red]Provisioning completed with errors[/bold red]")
             for error in result.errors:
                 console.print(f"   • {error}")
 

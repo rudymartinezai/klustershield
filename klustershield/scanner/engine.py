@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from jinja2 import Environment, StrictUndefined
 from kubernetes import client, config
@@ -172,9 +172,9 @@ class ComplianceScanner:
         self.rbac_v1 = client.RbacAuthorizationV1Api()
 
     @staticmethod
-    def _all_containers(pod: client.V1Pod) -> list[object]:
+    def _all_containers(pod: client.V1Pod) -> list[Any]:
         """Return all container types to avoid compliance blind spots."""
-        containers: list[object] = list(pod.spec.containers or [])
+        containers: list[Any] = list(pod.spec.containers or [])
         containers += list(pod.spec.init_containers or [])
         containers += list(pod.spec.ephemeral_containers or [])
         return containers
