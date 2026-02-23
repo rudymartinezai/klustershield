@@ -113,7 +113,7 @@ jobs:
             --confidence-level medium || true
 
       - name: Upload SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@dd746615b3b9d728a6a37ca2045b68ca76d4841a  # v3.28.5
+        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e  # v3.28.5
         if: always()
         with:
           sarif_file: bandit-results.sarif
